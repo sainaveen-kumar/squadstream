@@ -1,12 +1,22 @@
+import os
 from sqlmodel import SQLModel, create_engine, Session
 
-# This creates a file named 'squadstream.db' in your main folder
-sqlite_file_name = "squadstream.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+# 1. Get DB URL from Environment Variable (Render provides this)
+database_url = os.environ.get("DATABASE_URL")
 
-# check_same_thread=False is required for SQLite + FastAPI
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, connect_args=connect_args)
+# 2. Fallback to SQLite if no URL is found (Local Development)
+if not database_url:
+    sqlite_file_name = "squadstream.db"
+    database_url = f"sqlite:///{sqlite_file_name}"
+    connect_args = {"check_same_thread": False} # Required for SQLite
+else:
+    # 3. Fix for Postgres URL (Render uses 'postgres://', SQLAlchemy needs 'postgresql://')
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    connect_args = {} # Postgres doesn't need special args
+
+# 4. Create the Engine
+engine = create_engine(database_url, connect_args=connect_args)
 
 def get_session():
     with Session(engine) as session:
