@@ -2,103 +2,239 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{{ squad.title }} - SquadStream</title>
     <style>
-        /* 1. DARK MODE STYLING */
-        body { margin: 0; font-family: sans-serif; background-color: #0e0e10; color: white; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* 2. LAYOUT: Sidebar + Main Video */
-        .sidebar { width: 250px; background-color: #1f1f23; padding: 20px; border-right: 1px solid #333; display: flex; flex-direction: column; }
-        .main-stage { flex-grow: 1; background-color: #000; position: relative; }
-        
-        /* 3. BUTTONS */
-        .squad-btn {
-            background: #26262c; border: 1px solid #333; color: #efeff1;
-            padding: 15px; margin-bottom: 10px; cursor: pointer;
-            border-radius: 6px; text-align: left; font-weight: bold;
-            display: flex; align-items: center; transition: all 0.2s;
+        /* --- 1. GLOBAL STYLES --- */
+        body { 
+            margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #000; color: white; 
+            display: flex; height: 100vh; overflow: hidden; 
         }
-        .squad-btn:hover { background: #3a3a3f; border-color: #9146FF; }
-        .squad-btn.active { background: #9146FF; color: white; border-color: #9146FF; }
         
-        /* 4. RESPONSIVE (MOBILE) */
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { 
-                width: 100%; height: 80px; flex-direction: row; 
-                padding: 10px; overflow-x: auto; box-sizing: border-box;
-            }
-            .squad-btn { margin-right: 10px; min-width: 120px; justify-content: center; }
+        /* --- 2. SIDEBAR (Desktop) --- */
+        .sidebar { 
+            width: 260px; background-color: #18181b; padding: 20px; 
+            border-right: 1px solid #333; display: flex; flex-direction: column; 
+            flex-shrink: 0; z-index: 20;
         }
 
-        /* 5. PLAYER CONTAINER */
-        #twitch-embed { width: 100%; height: 100%; }
+        .squad-title { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
+        
+        /* Desktop Button Style (Rectangle) */
+        .squad-btn {
+            background: #26262c; border: 1px solid #333; color: #aaa;
+            padding: 12px; margin-bottom: 8px; cursor: pointer;
+            border-radius: 8px; text-align: left; font-weight: 600; 
+            display: flex; align-items: center; transition: all 0.2s;
+            width: 100%;
+        }
+        .squad-btn:hover { background: #323239; color: white; }
+        .squad-btn.active { 
+            background: #9146FF; color: white; border-color: #9146FF; 
+            box-shadow: 0 4px 15px rgba(145, 70, 255, 0.3);
+        }
+        
+        /* Desktop Avatar (Small Circle inside button) */
+        .avatar {
+            width: 30px; height: 30px; border-radius: 50%;
+            margin-right: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold; color: #fff; flex-shrink: 0;
+        }
+        
+        .btn-text {
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* --- 3. MAIN STAGE --- */
+        .main-stage { 
+            flex-grow: 1; background-color: #000; position: relative; 
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; 
+        }
+
+        /* --- 4. MOBILE OVERHAUL (The Fix) --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+    
+            .sidebar { 
+                width: 100%; 
+                height: 110px; 
+                flex-direction: row; 
+                padding: 10px 0; /* Remove side padding to allow full centering */
+                background: #0e0e10; 
+                border-right: none; border-bottom: 1px solid #222;
+                
+                /* CENTERING MAGIC */
+                display: flex;
+                justify-content: center; /* Centers items horizontally */
+                align-items: center; 
+                gap: 20px; /* More breathing room between icons */
+                
+                overflow-x: auto; 
+                scrollbar-width: none; -ms-overflow-style: none; 
+            }
+            .sidebar::-webkit-scrollbar { display: none; }
+            
+            .squad-title { display: none; }
+
+            /* Mobile Button: Becomes a Column (Icon Top, Text Bottom) */
+            .squad-btn {
+                flex-direction: column; 
+                align-items: center;
+                background: transparent; border: none; padding: 0; margin: 0;
+                width: 70px; /* Fixed width for alignment */
+                min-width: 70px; /* Prevent squashing */
+            }
+            .squad-btn:hover { background: transparent; }
+            
+            /* The Active State (Only affects the Avatar now) */
+            .squad-btn.active .avatar {
+                border: 2px solid #9146FF;
+                box-shadow: 0 0 10px #9146FF;
+                transform: scale(1.05);
+            }
+            .squad-btn.active { background: transparent; box-shadow: none; border: none; }
+
+            /* Mobile Avatar (Big Circle) */
+            .avatar {
+                width: 55px; height: 55px; margin: 0 0 6px 0;
+                border: 2px solid #333; /* Default border */
+                font-size: 18px;
+                transition: transform 0.2s;
+            }
+
+            /* Mobile Text (Visible below circle) */
+            .btn-text {
+                display: block;
+                font-size: 11px; color: #ccc; text-align: center;
+                width: 100%;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            }
+
+            .main-stage { height: calc(100vh - 110px); }
+        }
+
+        /* Animations & Gesture Zone */
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        
+        .animate-next { animation: slideInRight 0.3s ease-out; }
+        .animate-prev { animation: slideInLeft 0.3s ease-out; }
+
+        #gesture-zone {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 25%;
+            z-index: 10; 
+            background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); 
+        }
+        #twitch-embed, iframe { width: 100%; height: 100%; z-index: 1; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h3 style="margin-top:0;">{{ squad.title }}</h3>
+        <div class="squad-title">{{ squad.title }}</div>
         
         {% for member in squad.members %}
-<button class="squad-btn" onclick="switchStream('{{ member.username }}', '{{ member.platform }}', this)">
-    <span style="font-size: 10px; color: #888; margin-right: 8px;">[{{ member.platform | upper }}]</span>
-    {{ member.username }}
-</button>
-{% endfor %}
+        <button class="squad-btn" onclick="switchStream('{{ member.username }}', '{{ member.platform }}', this, 'click')">
+            <div class="avatar" style="background-color: {{ loop.cycle('#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#009688') }};">
+                {{ (member.display_name or member.username)[0] | upper }}
+            </div>
+            <span class="btn-text">{{ member.display_name or member.username }}</span>
+        </button>
+        {% endfor %}
     </div>
 
-    <div class="main-stage">
+    <div class="main-stage" id="main-stage">
         <div id="twitch-embed"></div>
+        <div id="gesture-zone"></div>
     </div>
 
     <script src="https://embed.twitch.tv/embed/v1.js"></script>
 
-<script type="text/javascript">
-    let twitchEmbed = null;
+    <script type="text/javascript">
+        let twitchEmbed = null;
+        let currentBtnIndex = 0;
+        const buttons = document.querySelectorAll('.squad-btn');
 
-    function switchStream(id, platform, btnElement) {
-        // 1. Highlight the active button
-        document.querySelectorAll('.squad-btn').forEach(b => b.classList.remove('active'));
-        if(btnElement) btnElement.classList.add('active');
-
-        const container = document.getElementById("twitch-embed");
-        container.innerHTML = ""; // Wipe previous player
-
-        if (platform === 'twitch') {
-            // RENDER TWITCH
-            twitchEmbed = new Twitch.Embed("twitch-embed", {
-                width: "100%",
-                height: "100%",
-                channel: id,
-                layout: "video",
-                autoplay: true,
-                parent: ["localhost", "127.0.0.1"]
+        // 1. SWITCHER LOGIC
+        function switchStream(id, platform, btnElement, direction) {
+            // Update Active UI
+            buttons.forEach((b, index) => {
+                b.classList.remove('active');
+                if(b === btnElement) {
+                    b.classList.add('active');
+                    currentBtnIndex = index;
+                    // Auto-scroll header
+                    b.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }
             });
-        } 
-        else if (platform === 'youtube') {
-            // RENDER YOUTUBE (Using simple iframe)
-            // Note: ?autoplay=1 makes it start immediately
-            const iframe = document.createElement("iframe");
-            iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
-            iframe.width = "100%";
-            iframe.height = "100%";
-            iframe.frameBorder = "0";
-            iframe.allow = "autoplay; encrypted-media; picture-in-picture";
-            iframe.allowFullscreen = true;
-            container.appendChild(iframe);
-        }
-    }
 
-    // Auto-load the first streamer
-    // Note: We now pass 3 arguments: ID, Platform, and Button
-    document.addEventListener("DOMContentLoaded", () => {
-         const firstBtn = document.querySelector('.squad-btn');
-         // These values come from Jinja2 loop below
-         // You need to update your button loop too! (See Step 3)
-         firstBtn.click();
-    });
-</script>
+            // Handle Animation (Only if swiping)
+            const container = document.getElementById("twitch-embed");
+            if(direction === 'next' || direction === 'prev') {
+                container.classList.remove('animate-next', 'animate-prev');
+                void container.offsetWidth; // Force Reflow
+                if(direction === 'next') container.classList.add('animate-next');
+                if(direction === 'prev') container.classList.add('animate-prev');
+            }
+
+            // Render Player
+            container.innerHTML = ""; 
+            if (platform === 'twitch') {
+                twitchEmbed = new Twitch.Embed("twitch-embed", {
+                    width: "100%", height: "100%",
+                    channel: id, layout: "video", autoplay: true,
+                    parent: ["localhost", "127.0.0.1", "squadstream-app.onrender.com", "squadstream.onrender.com"]
+                });
+            } else if (platform === 'youtube') {
+                const iframe = document.createElement("iframe");
+                iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1&playsinline=1`;
+                iframe.width = "100%"; iframe.height = "100%";
+                iframe.frameBorder = "0"; iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+                container.appendChild(iframe);
+            }
+        }
+
+        // 2. SWIPE LOGIC
+        let touchStartX = 0;
+        const gestureZone = document.getElementById('gesture-zone');
+
+        gestureZone.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        gestureZone.addEventListener('touchend', e => {
+            const touchEndX = e.changedTouches[0].screenX;
+            handleSwipe(touchStartX, touchEndX);
+        }, {passive: true});
+
+        function handleSwipe(start, end) {
+            const threshold = 50; 
+            if (end < start - threshold) { // Swipe Left (Next)
+                let next = currentBtnIndex + 1;
+                if (next >= buttons.length) next = 0; 
+                triggerClick(buttons[next], 'next');
+            }
+            if (end > start + threshold) { // Swipe Right (Prev)
+                let prev = currentBtnIndex - 1;
+                if (prev < 0) prev = buttons.length - 1; 
+                triggerClick(buttons[prev], 'prev');
+            }
+        }
+
+        function triggerClick(btn, direction) {
+            // Extract data from onclick attribute to avoid storing data-attributes everywhere
+            const onclickText = btn.getAttribute('onclick');
+            // format: switchStream('ID', 'PLATFORM', this, 'click')
+            const parts = onclickText.split("'");
+            switchStream(parts[1], parts[3], btn, direction);
+        }
+
+        // Init
+        document.addEventListener("DOMContentLoaded", () => {
+             if(buttons.length > 0) buttons[0].click();
+        });
+    </script>
 </body>
 </html>
